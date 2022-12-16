@@ -1,0 +1,74 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-size: 30px;
+  display: flex;
+  text-align: center;
+  color: #ffffff;
+  background-color: #1e555c;
+}
+
+.clock {
+  width: 500px;
+  height: 440px;
+  margin: auto;
+}
+
+.title {
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  color: #ffffff;
+  background-color: transparent;
+}
+
+.increment-decrement {
+  display: flex;
+  justify-content: center;
+}
+
+.increment-decrement {
+  margin-bottom: 20px;
+}
+
+.increment-decrement > div {
+  width: 250px;
+}
+
+.timer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 284px;
+  height: 174px;
+  margin: auto auto 10px;
+  border-radius: 50px;
+  border: 7px solid #13353a;
+}
+
+#time-left {
+  font-size: 80px;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+}
+
+#start_stop {
+  margin-right: 5px;
+}
+
+.fa-arrow-down,
+.fa-arrow-up {
+  margin: 0 8px;
+}

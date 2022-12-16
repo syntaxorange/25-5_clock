@@ -5,12 +5,51 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>25 + 5 Clock</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 </head>
 <body>
+  <div class="clock" id="clock">
+    <div class="title">25 + 5 Clock</div>
+    <div class="increment-decrement">
+      <div>
+        <div id="break-label">Break Length</div>
+        <button id="break-decrement">
+          <i class="fa fa-arrow-down fa-2x"></i>
+        </button>
+        <span id="break-length">5</span>
+        <button id="break-increment">
+          <i class="fa fa-arrow-up fa-2x"></i>
+        </button>
+      </div>
+      <div>
+        <div id="session-label">Session Length</div>
+        <button id="session-decrement">
+          <i class="fa fa-arrow-down fa-2x"></i>
+        </button>
+        <span id="session-length">25</span>
+        <button id="session-increment">
+          <i class="fa fa-arrow-up fa-2x"></i>
+        </button>
+      </div>
+    </div>
+    <div class="timer">
+      <div id="timer-label">Session</div>
+      <div id="time-left">25:00</div>
+    </div>
+    <div class="controls">
+      <button id="start_stop">
+        <i class="fa fa-play fa-2x"></i>
+        <i class="fa fa-pause fa-2x"></i>
+      </button>
+      <button id="reset">
+        <i class="fas fa-sync-alt fa-2x"></i>
+      </button>
+    </div>
+  </div>
   <script type="text/babel">
   </script>
 </body>
