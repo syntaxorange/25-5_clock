@@ -13,44 +13,123 @@
 </head>
 <body>
   <div class="clock" id="clock">
-    <div class="title">25 + 5 Clock</div>
-    <div class="increment-decrement">
-      <div>
-        <div id="break-label">Break Length</div>
-        <button id="break-decrement">
-          <i class="fa fa-arrow-down fa-2x"></i>
-        </button>
-        <span id="break-length">5</span>
-        <button id="break-increment">
-          <i class="fa fa-arrow-up fa-2x"></i>
-        </button>
-      </div>
-      <div>
-        <div id="session-label">Session Length</div>
-        <button id="session-decrement">
-          <i class="fa fa-arrow-down fa-2x"></i>
-        </button>
-        <span id="session-length">25</span>
-        <button id="session-increment">
-          <i class="fa fa-arrow-up fa-2x"></i>
-        </button>
-      </div>
-    </div>
-    <div class="timer">
-      <div id="timer-label">Session</div>
-      <div id="time-left">25:00</div>
-    </div>
-    <div class="controls">
-      <button id="start_stop">
-        <i class="fa fa-play fa-2x"></i>
-        <i class="fa fa-pause fa-2x"></i>
-      </button>
-      <button id="reset">
-        <i class="fas fa-sync-alt fa-2x"></i>
-      </button>
-    </div>
+
   </div>
   <script type="text/babel">
+    class GetButton extends React.Component {
+      constructor(props) {
+        super(props);
+        this.handleClick = this.handleClick.bind(this);
+      }
+
+      handleClick() {
+        this.props.onButtonClick({ type: this.props.type, output: this.props.output});
+      }
+
+      render() {
+        return (
+          <button id={this.props.id} onClick={this.handleClick}>
+            {this.props.children}
+          </button>
+        );
+      }
+    }
+
+    class GetIcon extends React.Component {
+      render() {
+        return <i className={`fa ${this.props.class} fa-2x`}></i>;
+      }
+    }
+
+    class Clock extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {
+          breakLength: 5,
+          sessionLength: 25,
+          minDecrement: 1,
+          maxIncrement: 60
+        }
+        this.handleButtonClick = this.handleButtonClick.bind(this);
+      }
+
+      decrement(prop) {
+        this.setState((state) => {
+          const value = state[prop];
+
+          return {
+            [prop]: value === state.minDecrement ? value : value - 1
+          }
+        });
+      }
+
+
+      increment(prop) {
+        this.setState((state) => {
+          const value = state[prop];
+
+          return {
+            [prop]: value === state.maxIncrement ? value : value + 1
+          }
+        });
+      }
+
+      handleButtonClick({ type, output }) {
+        switch(type) {
+          case 'decrement':
+            this.decrement(output, type);
+            break;
+          case 'increment':
+            this.increment(output);
+          default:
+        }
+      }
+
+      render() {
+        return (
+          <React.Fragment>
+            <div className="title">25 + 5 Clock</div>
+            <div className="increment-decrement">
+              <div>
+                <div id="break-label">Break Length</div>
+                <GetButton id="break-decrement" type="decrement" output="breakLength" onButtonClick={this.handleButtonClick}>
+                  <GetIcon class="fa-arrow-down"/>
+                </GetButton>
+                <span id="break-length">{this.state.breakLength}</span>
+                <GetButton id="break-increment" type="increment" output="breakLength" onButtonClick={this.handleButtonClick}>
+                  <GetIcon class="fa-arrow-up"/>
+                </GetButton>
+              </div>
+              <div>
+                <div id="session-label">Session Length</div>
+                <GetButton id="session-decrement" type="decrement" output="sessionLength" onButtonClick={this.handleButtonClick}>
+                  <GetIcon class="fa-arrow-down"/>
+                </GetButton>
+                <span id="session-length">{this.state.sessionLength}</span>
+                <GetButton id="session-increment" type="increment" output="sessionLength" onButtonClick={this.handleButtonClick}>
+                  <GetIcon class="fa-arrow-up"/>
+                </GetButton>
+              </div>
+            </div>
+            <div className="timer">
+              <div id="timer-label">Session</div>
+              <div id="time-left">25:00</div>
+            </div>
+            <div className="controls">
+              <button id="start_stop">
+                <i className="fa fa-play fa-2x"></i>
+                <i className="fa fa-pause fa-2x"></i>
+              </button>
+              <button id="reset">
+                <i className="fas fa-sync-alt fa-2x"></i>
+              </button>
+            </div>
+          </React.Fragment>
+        );
+      }
+    }
+    const root = ReactDOM.createRoot(document.getElementById('clock'));
+    root.render(<Clock/>);
   </script>
 </body>
 </html>
