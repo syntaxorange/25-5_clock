@@ -12,9 +12,7 @@
   <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 </head>
 <body>
-  <div class="clock" id="clock">
-
-  </div>
+  <div class="clock" id="clock"></div>
   <script type="text/babel">
     class GetButton extends React.Component {
       constructor(props) {
@@ -41,16 +39,94 @@
       }
     }
 
+    class RenderTimer extends React.Component {
+      render() {
+        return (
+          <div className="timer" style={{color: this.props.timerColor}}>
+            <div id="timer-label">Session</div>
+            <div id="time-left">{this.props.timeLeft}</div>
+          </div>
+        );
+      }
+    }
+
+    class RenderControls extends React.Component {
+      constructor(props) {
+        super(props);
+        this.handleClick = this.handleClick.bind(this);
+      }
+
+      handleClick({ type }) {
+        this.props.onButtonClick({ type });
+      }
+      
+      render() {
+        return (
+          <div className="controls">
+            <GetButton id="start_stop" type="start_stop" onButtonClick={this.handleClick}>
+              <i className="fa fa-play fa-2x"></i>
+              <i className="fa fa-pause fa-2x"></i>
+            </GetButton>
+            <GetButton id="reset" type="reset" onButtonClick={this.handleClick}>
+              <i className="fas fa-sync-alt fa-2x"></i>
+            </GetButton>
+          </div>
+        );
+      }
+    }
+
+    const config = {
+      breakLength: 5,
+      sessionLength: 25,
+      minDecrement: 1,
+      maxIncrement: 60,
+      date: '',
+      timerColor: '',
+      timeLeft: ''
+    }
+
     class Clock extends React.Component {
       constructor(props) {
         super(props);
-        this.state = {
-          breakLength: 5,
-          sessionLength: 25,
-          minDecrement: 1,
-          maxIncrement: 60
-        }
+        this.state = config;
         this.handleButtonClick = this.handleButtonClick.bind(this);
+      }
+
+      componentDidMount() {
+        this.setState({
+          date: new Date()
+        }, () => {
+          this.tick();
+        });
+      }
+
+      componentWillUnmount() {
+        this.clearInterval();
+      }
+
+      clearInterval() {
+        clearInterval(this.timerID);
+        this.timerID = 0
+      }
+
+      setTimerColor(color = '') {
+        this.setState({
+          timerColor: color
+        });
+      }
+
+      tick(minutes = 0, seconds = 0) {
+        this.setState((state) => {
+          if (minutes !== null)
+            state.date.setMinutes(minutes || (state.output || state.sessionLength));
+
+          if (seconds !== null)
+            state.date.setSeconds(seconds);
+          
+          return {
+            timeLeft: `${state.date.getMinutes()}:${('0' + state.date.getSeconds()).slice(-2)}`
+          }
+        });
       }
 
       decrement(prop) {
@@ -74,13 +150,63 @@
         });
       }
 
+      startStop(minutes = null) {
+        if (this.timerID) {
+          this.clearInterval();
+          this.tick(minutes, null);
+
+          return;
+        }
+        
+        this.timerID = setInterval(() => {
+          const seconds = this.state.date.getSeconds();
+          this.tick(minutes, seconds - 1);
+          minutes = null;
+
+          if (this.state.date.getMinutes() === 0 && seconds === 1) {
+            this.clearInterval();
+            this.startStop(this.state.breakLength);
+          }
+
+          if (this.state.date.getMinutes() === 0 
+            || (this.state.date.getMinutes() === 1 && seconds === 0))
+            this.setTimerColor('#a50d0d');
+          else
+            this.setTimerColor();
+        }, 1000);
+      }
+
+      reset() {
+        this.clearInterval();
+        this.setState(config);
+        this.setState({
+          date: new Date()
+        }, () => {
+          this.tick();
+        });
+      }
+
       handleButtonClick({ type, output }) {
+        const isTick = output === 'sessionLength' && !this.timerID;
         switch(type) {
           case 'decrement':
-            this.decrement(output, type);
+            if (!this.timerID)
+              this.decrement(output, type);
+            if (isTick)
+              this.tick();
             break;
           case 'increment':
-            this.increment(output);
+            if (!this.timerID)
+              this.increment(output);
+            if (isTick)
+              this.tick();
+            break;
+          case 'reset':
+            this.reset();
+            break;
+          case 'start_stop':
+            this.startStop();
+            break;
           default:
         }
       }
@@ -111,19 +237,8 @@
                 </GetButton>
               </div>
             </div>
-            <div className="timer">
-              <div id="timer-label">Session</div>
-              <div id="time-left">25:00</div>
-            </div>
-            <div className="controls">
-              <button id="start_stop">
-                <i className="fa fa-play fa-2x"></i>
-                <i className="fa fa-pause fa-2x"></i>
-              </button>
-              <button id="reset">
-                <i className="fas fa-sync-alt fa-2x"></i>
-              </button>
-            </div>
+            <RenderTimer timeLeft={this.state.timeLeft} timerColor={this.state.timerColor}/>
+            <RenderControls onButtonClick={this.handleButtonClick}/>
           </React.Fragment>
         );
       }
