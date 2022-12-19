@@ -26,7 +26,7 @@
 
       render() {
         return (
-          <button id={this.props.id} onClick={this.handleClick}>
+          <button id={this.props.id} className={this.props.class} onClick={this.handleClick}>
             {this.props.children}
           </button>
         );
@@ -43,7 +43,7 @@
       render() {
         return (
           <div className="timer" style={{color: this.props.timerColor}}>
-            <div id="timer-label">Session</div>
+            <div id="timer-label">{this.props.timerLabel}</div>
             <div id="time-left">{this.props.timeLeft}</div>
           </div>
         );
@@ -80,6 +80,8 @@
       sessionLength: 25,
       minDecrement: 1,
       maxIncrement: 60,
+      session: true,
+      timerLabel: 'Session',
       date: '',
       timerColor: '',
       timeLeft: ''
@@ -115,17 +117,33 @@
         });
       }
 
-      tick(minutes = 0, seconds = 0) {
-        this.setState((state) => {
-          if (minutes !== null)
-            state.date.setMinutes(minutes || (state.output || state.sessionLength));
+      setCounterType() {
+        return new Promise((resolve) => {
+          this.setState((state) => ({
+            session: !state.session
+          }), () => resolve());
+        });
+      }
 
-          if (seconds !== null)
-            state.date.setSeconds(seconds);
-          
-          return {
-            timeLeft: `${state.date.getMinutes()}:${('0' + state.date.getSeconds()).slice(-2)}`
-          }
+      setTimerLabel(label) {
+        this.setState({
+          timerLabel: label
+        });
+      }
+
+      tick(minutes = 0, seconds = 0) {
+        return new Promise((resolve) => {
+          this.setState((state) => {
+            if (minutes !== null)
+              state.date.setMinutes(minutes || (state.output || state.sessionLength));
+
+            if (seconds !== null)
+              state.date.setSeconds(seconds);
+            
+            return {
+              timeLeft: `${state.date.getMinutes()}:${('0' + state.date.getSeconds()).slice(-2)}`
+            }
+          }, () => resolve());
         });
       }
 
@@ -150,6 +168,20 @@
         });
       }
 
+      playAudio(stop = false) {
+        const audio = document.getElementById('beep');
+
+        audio.pause();
+        audio.currentTime = 0;
+
+        if (stop) {
+          return;
+        }
+
+        audio.volume = '0.3';
+        audio.play();
+      }
+
       startStop(minutes = null) {
         if (this.timerID) {
           this.clearInterval();
@@ -160,24 +192,33 @@
         
         this.timerID = setInterval(() => {
           const seconds = this.state.date.getSeconds();
-          this.tick(minutes, seconds - 1);
+          this.tick(minutes, minutes ? seconds : seconds - 1)
+            .then(() => {
+              if (this.state.date.getMinutes() === 0 && this.state.date.getSeconds() <= 59)
+                this.setTimerColor('#a50d0d');
+              else
+                this.setTimerColor();
+            });
           minutes = null;
 
           if (this.state.date.getMinutes() === 0 && seconds === 1) {
             this.clearInterval();
-            this.startStop(this.state.breakLength);
+            this.setCounterType()
+              .then(() => {
+                this.playAudio();
+                this.startStop(this.state[this.state.session ? 'sessionLength' : 'breakLength']);
+              });
           }
 
-          if (this.state.date.getMinutes() === 0 
-            || (this.state.date.getMinutes() === 1 && seconds === 0))
-            this.setTimerColor('#a50d0d');
-          else
-            this.setTimerColor();
+          if (this.state.date.getMinutes() === 0 && seconds === 0) {
+            this.setTimerLabel(this.state.session ? 'Session' : 'Break');
+          }
         }, 1000);
       }
 
       reset() {
         this.clearInterval();
+        this.playAudio(true);
         this.setState(config);
         this.setState({
           date: new Date()
@@ -218,27 +259,28 @@
             <div className="increment-decrement">
               <div>
                 <div id="break-label">Break Length</div>
-                <GetButton id="break-decrement" type="decrement" output="breakLength" onButtonClick={this.handleButtonClick}>
+                <GetButton id="break-decrement" class="button-length" type="decrement" output="breakLength" onButtonClick={this.handleButtonClick}>
                   <GetIcon class="fa-arrow-down"/>
                 </GetButton>
                 <span id="break-length">{this.state.breakLength}</span>
-                <GetButton id="break-increment" type="increment" output="breakLength" onButtonClick={this.handleButtonClick}>
+                <GetButton id="break-increment" class="button-length" type="increment" output="breakLength" onButtonClick={this.handleButtonClick}>
                   <GetIcon class="fa-arrow-up"/>
                 </GetButton>
               </div>
               <div>
                 <div id="session-label">Session Length</div>
-                <GetButton id="session-decrement" type="decrement" output="sessionLength" onButtonClick={this.handleButtonClick}>
+                <GetButton id="session-decrement" class="button-length" type="decrement" output="sessionLength" onButtonClick={this.handleButtonClick}>
                   <GetIcon class="fa-arrow-down"/>
                 </GetButton>
                 <span id="session-length">{this.state.sessionLength}</span>
-                <GetButton id="session-increment" type="increment" output="sessionLength" onButtonClick={this.handleButtonClick}>
+                <GetButton id="session-increment" class="button-length" type="increment" output="sessionLength" onButtonClick={this.handleButtonClick}>
                   <GetIcon class="fa-arrow-up"/>
                 </GetButton>
               </div>
             </div>
-            <RenderTimer timeLeft={this.state.timeLeft} timerColor={this.state.timerColor}/>
+            <RenderTimer timeLeft={this.state.timeLeft} timerColor={this.state.timerColor} timerLabel={this.state.timerLabel}/>
             <RenderControls onButtonClick={this.handleButtonClick}/>
+            <audio id="beep" preload="auto" src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"></audio>
           </React.Fragment>
         );
       }
